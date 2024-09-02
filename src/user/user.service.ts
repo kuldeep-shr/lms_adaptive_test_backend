@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   // UnauthorizedException,
+  InternalServerErrorException,
   BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -10,8 +11,8 @@ import { Model, Types } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import { Test } from '../schemas/test.schema';
 import { Question } from '../schemas/question.schema';
+// import { User } from '../schemas/user.schema';
 import { AnswerQuestionDto } from './dto/answer-question.dto';
-
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -19,6 +20,7 @@ export class UserService {
   constructor(
     @InjectModel(Test.name) private testModel: Model<Test>,
     @InjectModel(Question.name) private questionModel: Model<Question>,
+    // @InjectModel(User.name) private userModel: Model<User>,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -390,5 +392,166 @@ export class UserService {
       totalObtainedScore: totalObtainedScore,
       score: score,
     };
+  }
+  // async getTestDetails(testId: string): Promise<any> {
+  //   try {
+  //     // Find the test by ID
+  //     const test = await this.testModel
+  //       .findById(testId)
+  //       .populate('userId')
+  //       .populate('questionsAttempted.question')
+  //       .exec();
+
+  //     if (!test) {
+  //       throw new NotFoundException(`Test with ID "${testId}" not found`);
+  //     }
+  //     console.log('Test whole by admin', test);
+  //     // Transform the test object to the required format
+  //     return {
+  //       testId: test._id.toString(),
+  //       testUrl: test.testUrl,
+  //       // user: test.userId.name,
+  //       isExpired: test.isExpired,
+  //       score: test.score,
+  //       totalObtainedScore: test.totalObtainedScore,
+  //       questionsAttempted: test.questionsAttempted.map((attempt) => ({
+  //         // question: attempt.question.questionText,
+  //         option: attempt.option,
+  //         isCompleted: attempt.isCompleted,
+  //         date: attempt.date.toISOString(),
+  //         // _id: attempt._id.toString(),
+  //       })),
+  //     };
+  //   } catch (error) {
+  //     throw new InternalServerErrorException('Failed to retrieve test details');
+  //   }
+  // }
+  async getTestDetails(testUrl: string): Promise<any> {
+    try {
+      // Aggregate the test details by testUrl
+      const result = await this.testModel.aggregate([
+        { $match: { testUrl } },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            as: 'user',
+          },
+        },
+        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: 'questions',
+            localField: 'questionsAttempted.question',
+            foreignField: '_id',
+            as: 'questionsDetails',
+          },
+        },
+        {
+          $addFields: {
+            questionDetails: {
+              $map: {
+                input: '$questionsAttempted',
+                as: 'attempt',
+                in: {
+                  questionId: '$$attempt.question',
+                  questionText: {
+                    $let: {
+                      vars: {
+                        question: {
+                          $arrayElemAt: [
+                            {
+                              $filter: {
+                                input: '$questionsDetails',
+                                as: 'q',
+                                cond: {
+                                  $eq: ['$$q._id', '$$attempt.question'],
+                                },
+                              },
+                            },
+                            0,
+                          ],
+                        },
+                      },
+                      in: '$$question.questionText',
+                    },
+                  },
+                  correctAnswer: {
+                    $let: {
+                      vars: {
+                        question: {
+                          $arrayElemAt: [
+                            {
+                              $filter: {
+                                input: '$questionsDetails',
+                                as: 'q',
+                                cond: {
+                                  $eq: ['$$q._id', '$$attempt.question'],
+                                },
+                              },
+                            },
+                            0,
+                          ],
+                        },
+                      },
+                      in: '$$question.correctAnswer',
+                    },
+                  },
+                  options: {
+                    $let: {
+                      vars: {
+                        question: {
+                          $arrayElemAt: [
+                            {
+                              $filter: {
+                                input: '$questionsDetails',
+                                as: 'q',
+                                cond: {
+                                  $eq: ['$$q._id', '$$attempt.question'],
+                                },
+                              },
+                            },
+                            0,
+                          ],
+                        },
+                      },
+                      in: '$$question.options',
+                    },
+                  },
+                  userSelected: '$$attempt.option',
+                  isCompleted: '$$attempt.isCompleted',
+                  date: '$$attempt.date',
+                },
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            testId: '$_id',
+            testUrl: '$testUrl',
+            testDate: '$createdAt',
+            score: '$score',
+            totalObtainedScore: '$totalObtainedScore',
+            questionDetails: 1,
+            user: {
+              id: '$user._id',
+              name: '$user.name',
+            },
+          },
+        },
+      ]);
+
+      if (result.length === 0) {
+        throw new NotFoundException(`Test with URL "${testUrl}" not found`);
+      }
+
+      // Since aggregation returns an array, we return the first element
+      return result[0];
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to retrieve test details');
+    }
   }
 }

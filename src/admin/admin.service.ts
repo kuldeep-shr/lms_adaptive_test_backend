@@ -33,7 +33,7 @@ export class AdminService {
   async updateQuestion(
     id: string,
     updateQuestionDto: UpdateQuestionDto,
-  ): Promise<Question> {
+  ): Promise<string> {
     try {
       const question = await this.questionModel.findByIdAndUpdate(
         id,
@@ -45,7 +45,7 @@ export class AdminService {
         throw new NotFoundException(`Question with ID "${id}" not found`);
       }
 
-      return question;
+      return `Question with ID "${id}" updated successfully`;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
@@ -57,25 +57,33 @@ export class AdminService {
   async getQuestionById(id: string): Promise<Question> {
     try {
       const question = await this.questionModel.findById(id);
-
+      console.log('question', question);
       if (!question) {
         throw new NotFoundException(`Question with ID "${id}" not found`);
       }
 
       return question;
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new InternalServerErrorException('Failed to fetch question');
     }
   }
 
-  async deleteQuestion(id: string): Promise<void> {
+  async deleteQuestion(id: string): Promise<string> {
     try {
       const result = await this.questionModel.findByIdAndDelete(id);
 
       if (!result) {
         throw new NotFoundException(`Question with ID "${id}" not found`);
       }
+
+      return `Question with ID "${id}" deleted successfully`;
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new InternalServerErrorException('Failed to delete question');
     }
   }

@@ -15,7 +15,6 @@ export class JwtAuthGuard {
     this.jwtSecretAdmin = process.env.JWT_SECRET_ADMIN;
     this.jwtSecretUser = process.env.JWT_SECRET_USER;
   }
-
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);

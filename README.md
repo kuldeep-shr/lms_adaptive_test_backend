@@ -65,13 +65,459 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-## API Endpoints
+## Seed Data
 
-### User Registration Endpoint
+```bash
+# generate json file for questioms
+$ npm run generate-questions
+
+# push all questions into database
+$ npm run seed-questions
+
+```
+
+# API Endpoints
+
+### Admin Side Endpoint
+
+This endpoint allows you to register a new admin in the system.
+
+### 1. Admin Register
+
+`POST /auth/admin/register`
+
+### Request Headers
+
+- `Content-Type: application/json`
+
+### Request Body
+
+The request body should be a JSON object with the following fields:
+
+- `name`: The name of the admin (string).
+- `email`: The email address of the admin (string).
+- `password`: The password for the admin (string).
+- `isAdmin`: A boolean value indicating whether the user is an admin. Set this to `true` for admin registration.
+
+### Example Request
+
+```bash
+curl --location 'http://localhost:8080/auth/admin/register' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "name": "jaz",
+    "email": "jaz@example.com",
+    "password": "jaz@1234",
+    "isAdmin": true
+}'
+```
+
+### Example Response
+
+```json
+{
+  "name": "jaz",
+  "email": "jaz@example.com",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eXXXXXXXXXXXXXXXXXuNRwJj4E",
+  "expiresIn": "1h"
+}
+```
+
+### 2. Admin Login Endpoint
+
+This endpoint allows an administrator to log in to the system and receive a JWT token for authentication.
+
+### Endpoint
+
+`POST /auth/admin/login`
+
+### Request Headers
+
+- `Content-Type: application/json`
+
+### Request Body
+
+The request body should be a JSON object with the following fields:
+
+- `email`: The email address of the admin (string).
+- `password`: The password of the admin (string).
+
+### Example Request
+
+```bash
+curl --location 'http://localhost:8080/auth/admin/login' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "email": "jaz@example.com",
+    "password": "jaz@1234"
+}'
+```
+
+### Example Response
+
+```json
+{
+  "email": "jaz@example.com",
+  "token": "eyJhbXXXXXXXXXXXXXXX1Dv1kmWvc",
+  "expiresIn": "1h"
+}
+```
+
+### 3. Create a New Question Endpoint
+
+This endpoint allows an administrator to create a new question in the system.
+
+### Endpoint
+
+`POST /admin/questions`
+
+### Request Headers
+
+- `Authorization`: Bearer token for admin authentication. Replace the token with the JWT token obtained during login.
+- `Content-Type: application/json`
+
+### Request Body
+
+The request body should be a JSON object with the following fields:
+
+- `questionText`: The text of the question (string).
+- `options`: An array of objects, each representing a possible answer. Each object should have an `option` field (string).
+- `correctAnswer`: The correct answer for the question (string). This should match one of the `option` values.
+- `weightage`: The weightage or score of the question (integer).
+
+### Example Request
+
+```bash
+curl --location 'http://localhost:8080/admin/questions' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NXXXXXXXXXXXXXXXXXWvc' \
+--header 'Content-Type: application/json' \
+--data '{
+    "questionText": "What is the capital of France?",
+    "options": [
+        {
+            "option": "Paris"
+        },
+        {
+            "option": "London"
+        },
+        {
+            "option": "Berlin"
+        }
+    ],
+    "correctAnswer": "Paris",
+    "weightage": 5
+}'
+```
+
+### Example Response
+
+```json
+{
+  "questionText": "What is the capital of France?",
+  "options": [
+    {
+      "option": "Paris",
+      "_id": "66d625d05c8013bb83f3f16d"
+    },
+    {
+      "option": "London",
+      "_id": "66d625d05c8013bb83f3f16e"
+    },
+    {
+      "option": "Berlin",
+      "_id": "66d625d05c8013bb83f3f16f"
+    }
+  ],
+  "correctAnswer": "Paris",
+  "weightage": 5,
+  "createdAt": "2024-09-02T20:53:36.973Z",
+  "updatedAt": "2024-09-02T20:53:36.973Z",
+  "_id": "66d625d05c8013bb83f3f16c",
+  "__v": 0
+}
+```
+
+### 4. Update a Question Endpoint
+
+This endpoint allows an administrator to update an existing question in the system.
+
+### Endpoint
+
+`PATCH /admin/questions/:id`
+
+- `:id` is the unique identifier of the question you want to update.
+
+### Request Headers
+
+- `Authorization`: Bearer token for admin authentication. Replace the token with the JWT token obtained during login.
+- `Content-Type: application/json`
+
+### Request Body
+
+The request body should be a JSON object with the fields you want to update:
+
+- `questionText`: The updated text of the question (string).
+- `options`: An updated array of objects, each representing a possible answer. Each object should have an `option` field (string) and a `text` field (string) describing the option.
+- `correctAnswer`: The updated correct answer for the question (string). This should match one of the `option` values.
+- `weightage`: The updated weightage or score of the question (integer).
+
+### Example Request
+
+```bash
+curl --location --request PATCH 'http://localhost:8080/admin/questions/66d5f26f8e82c6185cba22b4' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInXXXXXXXXXXXXXXXXX1MzA1NDkwfQ.VxfkVIpgel-Tp1IAzT9GvMR43MENrhHILFDFSlyhDD8' \
+--data '{
+    "questionText": "What is the capital of Germany?",
+    "options": [
+        {
+            "option": "A",
+            "text": "Berlin"
+        },
+        {
+            "option": "B",
+            "text": "Spain"
+        },
+        {
+            "option": "C",
+            "text": "Paris"
+        }
+    ],
+    "correctAnswer": "A",
+    "weightage": 10
+}'
+```
+
+### Example Response
+
+```json
+Question with ID "66d5f26f8e82c6185cba22b4" updated successfully
+```
+
+### 5. Get a Specific Question Endpoint
+
+This endpoint allows an administrator to retrieve details of a specific question using its unique ID.
+
+### Endpoint
+
+`GET /admin/questions/:id`
+
+- `:id` is the unique identifier of the question you want to retrieve.
+
+### Request Headers
+
+- `Authorization`: Bearer token for admin authentication. Replace the token with the JWT token obtained during login.
+
+### Example Request
+
+```bash
+curl --location 'http://localhost:8080/admin/questions/66d5f26f8e82c6185cba22b4' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXXXXXXXXXXXXDD8'
+```
+
+### Example Response
+
+```json
+{
+  "_id": "66d5f26f8e82c6185cba22b4",
+  "questionText": "Sample Question 2: What is 2 + 2?",
+  "options": [
+    {
+      "option": "3",
+      "_id": "66d5f26f8e82c6185cba22b5"
+    },
+    {
+      "option": "4",
+      "_id": "66d5f26f8e82c6185cba22b6"
+    },
+    {
+      "option": "5",
+      "_id": "66d5f26f8e82c6185cba22b7"
+    }
+  ],
+  "correctAnswer": "4",
+  "weightage": 5,
+  "createdAt": "2024-09-02T17:14:23.649Z",
+  "updatedAt": "2024-09-02T17:14:23.649Z",
+  "__v": 0
+}
+```
+
+### 6. Get All Questions Endpoint
+
+This endpoint allows an administrator to retrieve a list of all questions in the system.
+
+### Endpoint
+
+`GET /admin/questions`
+
+### Request Headers
+
+- `Authorization`: Bearer token for admin authentication. Replace the token with the JWT token obtained during login.
+
+### Example Request
+
+```bash
+curl --location 'http://localhost:8080/admin/questions/' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsXXXXXXXXXXXhDD8'
+```
+
+### Example Response
+
+```json
+[
+    {
+        "_id": "66d5f26f8e82c6185cba22b4",
+        "questionText": "Sample Question 2: What is 2 + 2?",
+        "options": [
+            {
+                "option": "3",
+                "_id": "66d5f26f8e82c6185cba22b5"
+            },
+            {
+                "option": "4",
+                "_id": "66d5f26f8e82c6185cba22b6"
+            },
+            {
+                "option": "5",
+                "_id": "66d5f26f8e82c6185cba22b7"
+            }
+        ],
+        "correctAnswer": "4",
+        "weightage": 5,
+        "createdAt": "2024-09-02T17:14:23.649Z",
+        "updatedAt": "2024-09-02T17:14:23.649Z",
+        "__v": 0
+    }
+    .
+    .
+    .
+    .
+    .more
+],
+```
+
+### 7. Delete a Question Endpoint
+
+This endpoint allows an administrator to delete a specific question using its unique ID.
+
+### Endpoint
+
+`DELETE /admin/questions/:id`
+
+- `:id` is the unique identifier of the question you want to delete.
+
+### Request Headers
+
+- `Authorization`: Bearer token for admin authentication. Replace the token with the JWT token obtained during login.
+
+### Example Request
+
+```bash
+curl --location --request DELETE 'http://localhost:8080/admin/questions/66d625d05c8013bb83f3f16c' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzXXXXXXXXXXXv1kmWvc'
+```
+
+### Example Response
+
+```json
+Question with ID "66d625d05c8013bb83f3f16c" deleted successfully
+```
+
+### 8.Get Questions for a Specific Test Endpoint
+
+This endpoint allows an administrator to retrieve all questions associated with a specific test using its unique ID.
+
+### Endpoint
+
+`GET /admin/questions/tests/:testId`
+
+- `:testId` is the unique identifier of the test for which you want to retrieve questions.
+
+### Request Headers
+
+- `Authorization`: Bearer token for admin authentication. Replace the token with the JWT token obtained during login.
+- `Content-Type`: `application/json`
+
+### Example Request
+
+```bash
+curl --location 'http://localhost:8080/admin/questions/tests/25669509-2e8d-4915-a8ee-2369cef57e1a' \
+--header 'Authorization: Bearer eyJhbGciOiJXXXXXXXXXXXXXXXRaazx1uVzg14' \
+--header 'Content-Type: application/json'
+```
+
+### Example Response
+
+```json
+{
+  "user": {
+    "id": "66d5eff383f57ff16aec109f",
+    "name": "Dummy"
+  },
+  "questionDetails": [
+    {
+      "questionId": "66d5f26f8e82c6185cba231c",
+      "questionText": "Sample Question 28: What is 28 + 28?",
+      "correctAnswer": "56",
+      "options": [
+        {
+          "option": "55",
+          "_id": "66d5f26f8e82c6185cba231d"
+        },
+        {
+          "option": "56",
+          "_id": "66d5f26f8e82c6185cba231e"
+        },
+        {
+          "option": "57",
+          "_id": "66d5f26f8e82c6185cba231f"
+        }
+      ],
+      "userSelected": "55",
+      "isCompleted": true,
+      "date": "2024-09-02T20:14:29.868Z"
+    },
+    {
+      "questionId": "66d5f26f8e82c6185cba2304",
+      "questionText": "Sample Question 22: What is 22 + 22?",
+      "correctAnswer": "44",
+      "options": [
+        {
+          "option": "43",
+          "_id": "66d5f26f8e82c6185cba2305"
+        },
+        {
+          "option": "44",
+          "_id": "66d5f26f8e82c6185cba2306"
+        },
+        {
+          "option": "45",
+          "_id": "66d5f26f8e82c6185cba2307"
+        }
+      ],
+      "userSelected": "44",
+      "isCompleted": true,
+      "date": "2024-09-02T20:15:51.828Z"
+    }
+  ],
+  "testId": "66d61c55c63db25249c40d3d",
+  "testUrl": "25669509-2e8d-4915-a8ee-2369cef57e1a",
+  "testDate": "2024-09-02T20:13:09.624Z",
+  "score": 1,
+  "totalObtainedScore": 6
+}
+```
+
+<br />
+
+<br />
+
+### User Side Endpoint
 
 This endpoint allows you to register a new user in the system.
 
-### 1. Endpoint
+### 1. User Register
 
 `POST /auth/user/register`
 
@@ -91,7 +537,7 @@ The request body should be a JSON object with the following fields:
 ### Example Request
 
 ```bash
-curl --location 'http://localhost:3000/auth/user/register' \
+curl --location 'http://localhost:8080/auth/user/register' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "name": "Dummy",
@@ -106,10 +552,61 @@ curl --location 'http://localhost:3000/auth/user/register' \
 
 ```json
 {
-  "name": "Dummy",
-  "email": "dummy@example.com",
-  "token": "eyJhbGXXXXXXXXXXXXXXXXXXXXXXXXXX4YW1w",
-  "expiresIn": "1h"
+  "user": {
+    "id": "66d5eff383f57ff16aec109f",
+    "name": "Dummy"
+  },
+  "questionDetails": [
+    {
+      "questionId": "66d5f26f8e82c6185cba231c",
+      "questionText": "Sample Question 28: What is 28 + 28?",
+      "correctAnswer": "56",
+      "options": [
+        {
+          "option": "55",
+          "_id": "66d5f26f8e82c6185cba231d"
+        },
+        {
+          "option": "56",
+          "_id": "66d5f26f8e82c6185cba231e"
+        },
+        {
+          "option": "57",
+          "_id": "66d5f26f8e82c6185cba231f"
+        }
+      ],
+      "userSelected": "55",
+      "isCompleted": true,
+      "date": "2024-09-02T20:14:29.868Z"
+    },
+    {
+      "questionId": "66d5f26f8e82c6185cba2304",
+      "questionText": "Sample Question 22: What is 22 + 22?",
+      "correctAnswer": "44",
+      "options": [
+        {
+          "option": "43",
+          "_id": "66d5f26f8e82c6185cba2305"
+        },
+        {
+          "option": "44",
+          "_id": "66d5f26f8e82c6185cba2306"
+        },
+        {
+          "option": "45",
+          "_id": "66d5f26f8e82c6185cba2307"
+        }
+      ],
+      "userSelected": "44",
+      "isCompleted": true,
+      "date": "2024-09-02T20:15:51.828Z"
+    }
+  ],
+  "testId": "66d61c55c63db25249c40d3d",
+  "testUrl": "25669509-2e8d-4915-a8ee-2369cef57e1a",
+  "testDate": "2024-09-02T20:13:09.624Z",
+  "score": 1,
+  "totalObtainedScore": 6
 }
 ```
 
@@ -135,7 +632,7 @@ The request body should be a JSON object with the following fields:
 ### Example Request
 
 ```bash
-curl --location 'http://localhost:3000/auth/user/login' \
+curl --location 'http://localhost:8080/auth/user/login' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "email": "dummy@example.com",
@@ -173,7 +670,7 @@ This endpoint allows you to create unique URL for test.
 ### Example Request
 
 ```bash
-curl --location 'http://localhost:3000/user/tests/' \
+curl --location 'http://localhost:8080/user/tests/' \
 --header 'Content-Type: application/json' \
 --header 'Authorization: Bearer eyJhbGXXXXXXXXXXXXXXXXXXXXXXXXXLY4Q8'
 
@@ -207,7 +704,7 @@ This endpoint allows you to start the test.
 ### Example Request
 
 ```bash
-curl --location 'http://localhost:3000/user/tests/<testUrl>/start' \
+curl --location 'http://localhost:8080/user/tests/<testUrl>/start' \
 --header 'Authorization: Bearer eyJhbXXXXXXXXXXXXXXXXXXXXXXXXXXXLY4Q8' \
 --header 'Content-Type: application/json'
 
@@ -256,7 +753,7 @@ This endpoint allows you to post the answer.
 ### Example Request
 
 ```bash
-curl --location 'http://localhost:3000/user/<testUrl>/questions/<questionId>/answer' \
+curl --location 'http://localhost:8080/user/<testUrl>/questions/<questionId>/answer' \
 --header 'Content-Type: application/json' \
 --header 'Authorization: Bearer eyJhXXXXXXXXXXXXXXXXXXLY4Q8' \
 --data '{
@@ -283,7 +780,14 @@ curl --location 'http://localhost:3000/user/<testUrl>/questions/<questionId>/ans
 
 [<img src="https://run.pstmn.io/button.svg" alt="Run In Postman" style="width: 128px; height: 32px;">](https://app.getpostman.com/run-collection/30468072-2e667b11-1323-41ef-9244-39b3ddc4037c?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D30468072-2e667b11-1323-41ef-9244-39b3ddc4037c%26entityType%3Dcollection%26workspaceId%3D95aff678-647e-45b5-b7f2-68fb4adf621f)
 
-## Stay in touch for any changes or .env file
+## Stay in touch for any changes or .env file and their structure
+
+```bash
+DATABASE <string>
+JWT_SECRET_USER <string>
+JWT_SECRET_ADMIN <string>
+PORT <PORT>
+```
 
 - Author - [Kuldeep Sharma](https://github.com/kuldeep-shr)
 - Email - [Kuldeep Sharma](kuldeepsharma211097@gmail.com)

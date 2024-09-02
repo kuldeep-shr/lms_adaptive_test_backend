@@ -14,11 +14,15 @@ import { AdminService } from './admin.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { UserService } from '../user/user.service';
 
 @Controller('admin/questions')
 @UseGuards(JwtAuthGuard)
 export class AdminController {
-  constructor(private adminService: AdminService) {}
+  constructor(
+    private adminService: AdminService,
+    private readonly userService: UserService,
+  ) {}
 
   @Post()
   async createQuestion(@Body() createQuestionDto: CreateQuestionDto) {
@@ -87,6 +91,23 @@ export class AdminController {
       }
       throw new HttpException(
         'Failed to delete question',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('/tests/:testId')
+  async getTestDetails(@Param('testId') testId: string) {
+    try {
+      console.log('xxcvvx');
+      return await this.userService.getTestDetails(testId);
+    } catch (error) {
+      console.log('bhaar error', error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Failed to retrieve test details',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
