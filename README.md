@@ -157,6 +157,7 @@ curl --location 'http://localhost:8080/auth/admin/login' \
 
 ```json
 {
+  "name": "jaz",
   "email": "jaz@example.com",
   "token": "eyJhbXXXXXXXXXXXXXXX1Dv1kmWvc",
   "expiresIn": "24h"
@@ -594,6 +595,7 @@ curl --location 'http://localhost:8080/auth/user/login' \
 
 ```json
 {
+  "name": "Dummy",
   "email": "dummy@example.com",
   "token": "eyJhbXXXXXXXXXXXXXXXXXXXXXXXXlmCcA8",
   "expiresIn": "24h"
