@@ -76,6 +76,15 @@ $ npm run seed-questions
 
 ```
 
+# 🧰 Tech Stack
+
+This platform is built using the following technologies:
+
+Nest.js ⚛️
+Node.js 🚀
+MongoDB {Cloud} ☁️
+JWT Token 🕵️‍♂️
+
 # API Endpoints
 
 ### Admin Side Endpoint
