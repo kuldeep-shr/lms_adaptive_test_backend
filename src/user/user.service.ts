@@ -74,7 +74,7 @@ export class UserService {
           $project: selectedFields,
         },
       ]);
-      return getQuestion;
+      return getQuestion[0];
     } else {
       // adaptive algorithm
       // const fetchUserPreviousAnswer = await this.testModel;
@@ -274,7 +274,6 @@ export class UserService {
         );
         return {
           message: 'Test has been finished',
-          isCorrect,
           score: updatedTest.score,
           totalObtainedScore: testDetails.totalObtainedScore,
           testCompleted: testDetails.isCompleted,
@@ -285,7 +284,6 @@ export class UserService {
 
       return {
         message: 'Answer submitted successfully',
-        isCorrect,
         score: updatedTest.score,
         totalObtainedScore: testDetails.totalObtainedScore,
         testCompleted: updatedTest.isExpired,
@@ -393,39 +391,7 @@ export class UserService {
       score: score,
     };
   }
-  // async getTestDetails(testId: string): Promise<any> {
-  //   try {
-  //     // Find the test by ID
-  //     const test = await this.testModel
-  //       .findById(testId)
-  //       .populate('userId')
-  //       .populate('questionsAttempted.question')
-  //       .exec();
 
-  //     if (!test) {
-  //       throw new NotFoundException(`Test with ID "${testId}" not found`);
-  //     }
-  //     console.log('Test whole by admin', test);
-  //     // Transform the test object to the required format
-  //     return {
-  //       testId: test._id.toString(),
-  //       testUrl: test.testUrl,
-  //       // user: test.userId.name,
-  //       isExpired: test.isExpired,
-  //       score: test.score,
-  //       totalObtainedScore: test.totalObtainedScore,
-  //       questionsAttempted: test.questionsAttempted.map((attempt) => ({
-  //         // question: attempt.question.questionText,
-  //         option: attempt.option,
-  //         isCompleted: attempt.isCompleted,
-  //         date: attempt.date.toISOString(),
-  //         // _id: attempt._id.toString(),
-  //       })),
-  //     };
-  //   } catch (error) {
-  //     throw new InternalServerErrorException('Failed to retrieve test details');
-  //   }
-  // }
   async getTestDetails(testUrl: string): Promise<any> {
     try {
       // Aggregate the test details by testUrl

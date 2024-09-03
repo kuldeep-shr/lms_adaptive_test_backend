@@ -119,7 +119,7 @@ curl --location 'http://localhost:8080/auth/admin/register' \
   "name": "jaz",
   "email": "jaz@example.com",
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eXXXXXXXXXXXXXXXXXuNRwJj4E",
-  "expiresIn": "1h"
+  "expiresIn": "24h"
 }
 ```
 
@@ -159,7 +159,7 @@ curl --location 'http://localhost:8080/auth/admin/login' \
 {
   "email": "jaz@example.com",
   "token": "eyJhbXXXXXXXXXXXXXXX1Dv1kmWvc",
-  "expiresIn": "1h"
+  "expiresIn": "24h"
 }
 ```
 
@@ -552,61 +552,10 @@ curl --location 'http://localhost:8080/auth/user/register' \
 
 ```json
 {
-  "user": {
-    "id": "66d5eff383f57ff16aec109f",
-    "name": "Dummy"
-  },
-  "questionDetails": [
-    {
-      "questionId": "66d5f26f8e82c6185cba231c",
-      "questionText": "Sample Question 28: What is 28 + 28?",
-      "correctAnswer": "56",
-      "options": [
-        {
-          "option": "55",
-          "_id": "66d5f26f8e82c6185cba231d"
-        },
-        {
-          "option": "56",
-          "_id": "66d5f26f8e82c6185cba231e"
-        },
-        {
-          "option": "57",
-          "_id": "66d5f26f8e82c6185cba231f"
-        }
-      ],
-      "userSelected": "55",
-      "isCompleted": true,
-      "date": "2024-09-02T20:14:29.868Z"
-    },
-    {
-      "questionId": "66d5f26f8e82c6185cba2304",
-      "questionText": "Sample Question 22: What is 22 + 22?",
-      "correctAnswer": "44",
-      "options": [
-        {
-          "option": "43",
-          "_id": "66d5f26f8e82c6185cba2305"
-        },
-        {
-          "option": "44",
-          "_id": "66d5f26f8e82c6185cba2306"
-        },
-        {
-          "option": "45",
-          "_id": "66d5f26f8e82c6185cba2307"
-        }
-      ],
-      "userSelected": "44",
-      "isCompleted": true,
-      "date": "2024-09-02T20:15:51.828Z"
-    }
-  ],
-  "testId": "66d61c55c63db25249c40d3d",
-  "testUrl": "25669509-2e8d-4915-a8ee-2369cef57e1a",
-  "testDate": "2024-09-02T20:13:09.624Z",
-  "score": 1,
-  "totalObtainedScore": 6
+  "name": "Dummy",
+  "email": "dummy@example.com",
+  "token": "eyJhbGciOiJIUzI1NiIXXXXXXXXXXXXXXXXXXXXXXXXXXXXXv4CBNk",
+  "expiresIn": "24h"
 }
 ```
 
@@ -647,7 +596,7 @@ curl --location 'http://localhost:8080/auth/user/login' \
 {
   "email": "dummy@example.com",
   "token": "eyJhbXXXXXXXXXXXXXXXXXXXXXXXXlmCcA8",
-  "expiresIn": "1h"
+  "expiresIn": "24h"
 }
 ```
 
@@ -713,24 +662,22 @@ curl --location 'http://localhost:8080/user/tests/<testUrl>/start' \
 ### Example Response
 
 ```json
-[
-  {
-    "_id": "66d56f8d418e5ce42699ac7c",
-    "questionText": "Sample Question 35: What is 35 + 35?",
-    "options": [
-      {
-        "option": "69"
-      },
-      {
-        "option": "70"
-      },
-      {
-        "option": "71"
-      }
-    ],
-    "weightage": 5
-  }
-]
+{
+  "_id": "66d56f8d418e5ce42699ac7c",
+  "questionText": "Sample Question 35: What is 35 + 35?",
+  "options": [
+    {
+      "option": "69"
+    },
+    {
+      "option": "70"
+    },
+    {
+      "option": "71"
+    }
+  ],
+  "weightage": 5
+}
 ```
 
 ### 5. Post answer
@@ -768,7 +715,6 @@ curl --location 'http://localhost:8080/user/<testUrl>/questions/<questionId>/ans
 ```json
 {
   "message": "Answer submitted successfully",
-  "isCorrect": false,
   "score": 0,
   "totalObtainedScore": 5,
   "testCompleted": false,

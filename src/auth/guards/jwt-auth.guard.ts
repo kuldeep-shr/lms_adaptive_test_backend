@@ -25,15 +25,12 @@ export class JwtAuthGuard {
 
     try {
       // Verify the token using jsonwebtoken directly
-      console.log('first try');
       const decoded = jwt.verify(token, this.jwtSecretAdmin);
-      console.log('fist try', decoded);
       request.user = decoded;
     } catch (error) {
       try {
         // Verify the token using jsonwebtoken directly
         const decoded = jwt.verify(token, this.jwtSecretUser);
-        console.log('second try', decoded);
         request.user = decoded;
       } catch (error) {
         throw new UnauthorizedException('Invalid JWT token');

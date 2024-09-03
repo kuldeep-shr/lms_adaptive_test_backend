@@ -48,11 +48,11 @@ export class AuthService {
           secret: isAdmin
             ? process.env.JWT_SECRET_ADMIN
             : process.env.JWT_SECRET_USER,
-          expiresIn: '1h',
+          expiresIn: '24h',
         },
       );
 
-      return { name: name, email: email, token, expiresIn: '1h' };
+      return { name: name, email: email, token, expiresIn: '24h' };
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
@@ -77,11 +77,11 @@ export class AuthService {
           secret: isAdmin
             ? process.env.JWT_SECRET_ADMIN
             : process.env.JWT_SECRET_USER,
-          expiresIn: '1h',
+          expiresIn: '24h',
         },
       );
 
-      return { email: email, token, expiresIn: '1h' };
+      return { name: user.name, email: email, token, expiresIn: '24h' };
     } catch (error) {
       if (
         error instanceof UnauthorizedException ||
