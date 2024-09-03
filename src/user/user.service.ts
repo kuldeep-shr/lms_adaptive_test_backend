@@ -261,10 +261,7 @@ export class UserService {
       const updatedTest = await this.testModel.findOne({ testUrl: testId });
 
       // Check test end conditions
-      const testDetails = await this.checkTestEndConditions(
-        updatedTest,
-        questionId,
-      );
+      const testDetails = await this.checkTestEndConditions(updatedTest);
 
       // Update the test document to mark as expired if needed
       if (testDetails.isCompleted) {
@@ -294,28 +291,121 @@ export class UserService {
     }
   }
 
-  async checkTestEndConditions(test: Test, questionId: string): Promise<any> {
-    const questionIds = test.questionsAttempted.filter((attempt) =>
-      attempt.question.equals(questionId),
+  // async checkTestEndConditions(test: Test, questionId: string): Promise<any> {
+  //   const questionIds = test.questionsAttempted.filter((attempt) =>
+  //     attempt.question.equals(questionId),
+  //   );
+  //   const questions = await this.questionModel
+  //     .find({ _id: questionIds[0].question })
+  //     .exec();
+
+  //   const questionMap = new Map(
+  //     questions.map((question) => [question._id.toString(), question]),
+  //   );
+  //   const incorrectAttempts = test.questionsAttempted
+  //     .slice(-3)
+  //     .filter((attempt) => {
+  //       const question = questionMap.get(attempt.question.toString());
+  //       return (
+  //         question &&
+  //         attempt.option.toLowerCase() !== question.correctAnswer.toLowerCase()
+  //       );
+  //     });
+  //   let totalObtainedScore = test.totalObtainedScore || 0;
+  //   let score = test.score || 0;
+
+  //   for (const attempt of test.questionsAttempted) {
+  //     const question = questionMap.get(attempt.question.toString());
+
+  //     if (question) {
+  //       if (
+  //         attempt.option.toLowerCase() === question.correctAnswer.toLowerCase()
+  //       ) {
+  //         score += question.weightage;
+  //         totalObtainedScore += question.weightage;
+  //       } else {
+  //         totalObtainedScore += question.weightage;
+  //       }
+  //     }
+  //   }
+
+  //   // Check for consecutive incorrect attempts on hard questions (weightage 10)
+  //   const hasConsecutiveIncorrectHardQuestions =
+  //     incorrectAttempts.length === 3 &&
+  //     incorrectAttempts.every((attempt) => {
+  //       const question = questionMap.get(attempt.question.toString());
+  //       return question && question.weightage === 10;
+  //     });
+
+  //   // Check for an incorrect answer on a question with weightage 1
+  //   const hasIncorrectEasyQuestion = test.questionsAttempted.some((attempt) => {
+  //     const question = questionMap.get(attempt.question.toString());
+  //     return (
+  //       question &&
+  //       question.weightage === 1 &&
+  //       !question.correctAnswer
+  //         .toLowerCase()
+  //         .includes(attempt.option.toLowerCase())
+  //     );
+  //   });
+
+  //   const reachedMaxQuestions = test.questionsAttempted.length >= 20;
+
+  //   // Check if test should end based on the conditions
+  //   if (
+  //     hasConsecutiveIncorrectHardQuestions ||
+  //     hasIncorrectEasyQuestion ||
+  //     reachedMaxQuestions
+  //   ) {
+  //     // Mark the test as expired and update the score and totalObtainedScore
+  //     await this.testModel.updateOne(
+  //       { testUrl: test.testUrl },
+  //       {
+  //         isExpired: true,
+  //         totalObtainedScore: totalObtainedScore,
+  //         score: score,
+  //         isCompleted: true,
+  //       },
+  //     );
+
+  //     return {
+  //       isCompleted: true,
+  //       totalObtainedScore: totalObtainedScore,
+  //       score: score,
+  //     };
+  //   }
+
+  //   // If test is not expired, update the totalObtainedScore
+  //   await this.testModel.updateOne(
+  //     { testUrl: test.testUrl },
+  //     {
+  //       totalObtainedScore: totalObtainedScore,
+  //     },
+  //   );
+
+  //   return {
+  //     isCompleted: false,
+  //     totalObtainedScore: totalObtainedScore,
+  //     score: score,
+  //   };
+  // }
+
+  async checkTestEndConditions(test: Test): Promise<any> {
+    const questionIds = test.questionsAttempted.map(
+      (attempt) => attempt.question,
     );
     const questions = await this.questionModel
-      .find({ _id: questionIds[0].question })
+      .find({ _id: { $in: questionIds } })
       .exec();
 
     const questionMap = new Map(
       questions.map((question) => [question._id.toString(), question]),
     );
-    const incorrectAttempts = test.questionsAttempted
-      .slice(-3)
-      .filter((attempt) => {
-        const question = questionMap.get(attempt.question.toString());
-        return (
-          question &&
-          attempt.option.toLowerCase() !== question.correctAnswer.toLowerCase()
-        );
-      });
+
     let totalObtainedScore = test.totalObtainedScore || 0;
     let score = test.score || 0;
+
+    let consecutiveCorrectHardQuestions = 0;
 
     for (const attempt of test.questionsAttempted) {
       const question = questionMap.get(attempt.question.toString());
@@ -326,19 +416,26 @@ export class UserService {
         ) {
           score += question.weightage;
           totalObtainedScore += question.weightage;
+
+          // Check if the question has a weightage of 10
+          if (question.weightage === 10) {
+            consecutiveCorrectHardQuestions++;
+          } else {
+            consecutiveCorrectHardQuestions = 0; // Reset if a different weightage question is correct
+          }
         } else {
           totalObtainedScore += question.weightage;
+
+          if (question.weightage === 10) {
+            consecutiveCorrectHardQuestions = 0; // Reset if a weightage 10 question is incorrect
+          }
         }
       }
     }
 
-    // Check for consecutive incorrect attempts on hard questions (weightage 10)
-    const hasConsecutiveIncorrectHardQuestions =
-      incorrectAttempts.length === 3 &&
-      incorrectAttempts.every((attempt) => {
-        const question = questionMap.get(attempt.question.toString());
-        return question && question.weightage === 10;
-      });
+    // Check for three consecutive correct answers on hard questions (weightage 10)
+    const hasConsecutiveCorrectHardQuestions =
+      consecutiveCorrectHardQuestions >= 3;
 
     // Check for an incorrect answer on a question with weightage 1
     const hasIncorrectEasyQuestion = test.questionsAttempted.some((attempt) => {
@@ -356,7 +453,7 @@ export class UserService {
 
     // Check if test should end based on the conditions
     if (
-      hasConsecutiveIncorrectHardQuestions ||
+      hasConsecutiveCorrectHardQuestions ||
       hasIncorrectEasyQuestion ||
       reachedMaxQuestions
     ) {
@@ -367,6 +464,7 @@ export class UserService {
           isExpired: true,
           totalObtainedScore: totalObtainedScore,
           score: score,
+          isCompleted: true,
         },
       );
 
